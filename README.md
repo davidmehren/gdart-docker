@@ -11,3 +11,5 @@ podman build -f Dockerfile.verifier-stub -t verifier-stub
 
 podman build -f Dockerfile.examples -t gdart-examples
 ```
+
+Then run the example container with `podman run gdart-examples:latest`
