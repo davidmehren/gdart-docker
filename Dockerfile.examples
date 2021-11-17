@@ -1,15 +1,20 @@
 FROM verifier-stub as verifier
-FROM spout:dev
+FROM dse as dse
+FROM spout
 
+# Copy dependencies
 COPY --from=verifier /verifier-stub/target/verifier-stub-1.0.jar /verifier-stub/
+COPY --from=dse /dse/target/dse-0.0.1-SNAPSHOT-jar-with-dependencies.jar /dse/dse.jar
 
+# Install git
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates
 
+# Clone examples
 RUN git clone https://github.com/tudo-aqua/gdart-examples.git /gdart-examples
 
 WORKDIR /gdart-examples/java11
 
-RUN javac -cp /verifier-stub/verifier-stub-1.0.jar Main.java
-RUN java -truffle -ea -cp /verifier-stub/verifier-stub-1.0.jar:. Main
-RUN java -truffle -ea -cp /verifier-stub/verifier-stub-1.0.jar:. -Dconcolic.ints=101 Main
+COPY truffle.sh .
+COPY run-example-java11.sh .
 
+CMD /gdart-examples/java11/run-example-java11.sh
