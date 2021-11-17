@@ -1,0 +1,15 @@
+FROM verifier-stub as verifier
+FROM spout:dev
+
+COPY --from=verifier /verifier-stub/target/verifier-stub-1.0.jar /verifier-stub/
+
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates
+
+RUN git clone https://github.com/tudo-aqua/gdart-examples.git /gdart-examples
+
+WORKDIR /gdart-examples/java11
+
+RUN javac -cp /verifier-stub/verifier-stub-1.0.jar Main.java
+RUN java -truffle -ea -cp /verifier-stub/verifier-stub-1.0.jar:. Main
+RUN java -truffle -ea -cp /verifier-stub/verifier-stub-1.0.jar:. -Dconcolic.ints=101 Main
+

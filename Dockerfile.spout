@@ -1,0 +1,22 @@
+ARG GRAAL_VERSION
+ARG JDK_VERSION
+
+FROM findepi/graalvm:${GRAAL_VERSION}-java${JDK_VERSION} AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends git python3 python-is-python3 python3-distutils build-essential zlib1g-dev
+RUN git clone -b 5.316.7 https://github.com/graalvm/mx.git /mx
+
+RUN git clone -b spout-espresso-21.2.0 https://github.com/tudo-aqua/spout.git /spout
+RUN cd /spout/espresso && export JAVA_HOME=/graalvm && /mx/mx --env native-ce build
+
+FROM debian:stable-slim
+
+ARG GRAAL_VERSION
+ARG JDK_VERSION
+
+COPY --from=builder /spout/sdk/mxbuild/linux-amd64/GRAALVM_ESPRESSO_NATIVE_CE_JAVA${JDK_VERSION}/graalvm-espresso-native-ce-java${JDK_VERSION}-${GRAAL_VERSION} /spout_jre/
+
+ENV PATH=/spout_jre/bin:$PATH
+ENV JAVA_HOME=/spout_jre
+RUN java --version
+
